@@ -1,6 +1,6 @@
 <template>
 	<view class="content">
-		skunk-ai
+		skunk-ai111
 	</view>
 </template>
 
