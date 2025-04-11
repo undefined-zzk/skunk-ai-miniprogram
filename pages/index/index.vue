@@ -1,6 +1,6 @@
 <template>
 	<view class="content">
-		skunk-ai
+      <custom-navbar></custom-navbar>
 	</view>
 </template>
 
@@ -8,6 +8,6 @@
 
 </script>
 
-<style>
+<style lang="scss" scoped>
 
 </style>

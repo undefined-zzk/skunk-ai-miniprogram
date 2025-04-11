@@ -1,0 +1,8 @@
+{
+	"devDependencies": {
+		"unplugin-auto-import": "^19.1.2"
+	},
+	"dependencies": {
+		"normalize.css": "^8.0.1"
+	}
+}
