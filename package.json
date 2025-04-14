@@ -3,6 +3,8 @@
 		"unplugin-auto-import": "^19.1.2"
 	},
 	"dependencies": {
-		"normalize.css": "^8.0.1"
+		"normalize.css": "^8.0.1",
+		"pinia": "^3.0.2",
+		"pinia-plugin-persistedstate": "^4.2.0"
 	}
 }

@@ -16,4 +16,9 @@ export default defineConfig({
 			dts: "typings/auto-imports.d.ts",
 		}),
 	],
+	resolve: {
+		alias: {
+			'@': path.resolve(__dirname, './'), // 将 @ 映射到 src 目录
+		},
+	},
 });
