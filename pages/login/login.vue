@@ -28,17 +28,19 @@ const getuserinfo = () => {
 	uni.getUserProfile({
 		desc: '用户登录',
 		success(res) {
+			console.log('res', res);
 			const { nickName, avatarUrl } = res.userInfo;
 			userinfo.value = { name: nickName, avatar: avatarUrl, uuid: Math.round(Math.random() * 20000) };
 			skunkToken.value = generateWeChatUUID();
 			uni.showToast({
 				title: '登录成功',
 				mask: true,
-				image: '/common/icons/skunk.svg',
 				success() {
-					uni.reLaunch({
-						url: '/pages/index/index'
-					});
+					setTimeout(() => {
+						uni.reLaunch({
+							url: '/pages/index/index'
+						});
+					}, 1000);
 				}
 			});
 		},
