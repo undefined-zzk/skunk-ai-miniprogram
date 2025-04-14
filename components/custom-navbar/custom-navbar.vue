@@ -2,7 +2,7 @@
  const props=defineProps({
 	 title:{
 		 type:String,
-		 default:'11'
+		 default:'标题'
 	 }
  })
 </script>

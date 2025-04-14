@@ -1,6 +1,6 @@
 <template>
 	<view class="content">
-      <custom-navbar></custom-navbar>
+      <custom-navbar title="SkunkAI"></custom-navbar>
 	</view>
 </template>
 
@@ -11,3 +11,4 @@
 <style lang="scss" scoped>
 
 </style>
+

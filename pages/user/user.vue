@@ -1,0 +1,9 @@
+<template>
+	<view class="content">
+		<custom-navbar title="我的"></custom-navbar>
+	</view>
+</template>
+
+<script setup></script>
+
+<style lang="scss" scoped></style>
