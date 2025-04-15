@@ -12,7 +12,8 @@ const { userinfo } = storeToRefs(userStore);
 			<template>
 				<view class="user-info">
 					<view class="avatar">
-						<image src="/common/icons/skunk.svg"></image>
+						<image src="/common/icons/skunk.svg" v-if="!userinfo.avatar"></image>
+						<image :src="userinfo.avatar" v-else></image>
 					</view>
 					<view class="name-box">
 						<view class="name">{{ userinfo.name }}</view>

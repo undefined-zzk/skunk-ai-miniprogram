@@ -1,14 +1,10 @@
 <template>
 	<view class="content">
-      <custom-navbar title="SkunkAI"></custom-navbar>
+		<custom-navbar title="SkunkAI"></custom-navbar>
+		<navigator url="/pages/login/login">去登s录</navigator>
 	</view>
 </template>
 
-<script setup>
+<script setup></script>
 
-</script>
-
-<style lang="scss" scoped>
-
-</style>
-
+<style lang="scss" scoped></style>

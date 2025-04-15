@@ -7,16 +7,15 @@
 			}
 		},
 		{
-			"path":"pages/user/user",
+			"path": "pages/user/user",
 			"style": {
 				"navigationBarTitleText": "我的"
 			}
 		},
 		{
-			"path" : "pages/login/login",
-			"style" : 
-			{
-				"navigationBarTitleText" : "登录"
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录"
 			}
 		}
 	],
@@ -30,8 +29,7 @@
 	"tabBar": {
 		"color": "#4F4F4F",
 		"selectedColor": "#4E6CFF",
-		"list": [
-			{
+		"list": [{
 				"iconPath": "/static/tabar/home.png",
 				"pagePath": "pages/index/index",
 				"selectedIconPath": "/static/tabar/home-active.png",
@@ -48,7 +46,7 @@
 	"easycom": {
 		"autoscan": true,
 		"custom": {
-			"^uni-(.*)": "@/components/uni-$1.vue", 
+			"^uni-(.*)": "@/components/uni-$1.vue",
 			"^ui-(.*)": "@/components/ui-$1/ui-$1.vue",
 			"^vue-file-(.*)": "packageName/path/to/vue-file-$1.vue"
 		}
