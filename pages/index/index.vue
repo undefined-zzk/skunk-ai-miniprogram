@@ -5,6 +5,12 @@
 	</view>
 </template>
 
-<script setup></script>
+<script setup>
+import { useAuth } from '../../composables/useAuth';
+useAuth();
+onShow(() => {
+	console.log('onShow');
+});
+</script>
 
 <style lang="scss" scoped></style>

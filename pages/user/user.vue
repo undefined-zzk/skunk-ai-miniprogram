@@ -1,9 +1,15 @@
 <script setup>
 import { useUserStore } from '@/store/modules/user';
 import { storeToRefs } from 'pinia';
+import { useAuth } from '../../composables/useAuth';
+useAuth();
 const userStore = useUserStore();
-
 const { userinfo } = storeToRefs(userStore);
+const clearCache = () => {};
+
+const logout = () => {
+	userStore.logout();
+};
 </script>
 
 <template>
@@ -22,6 +28,15 @@ const { userinfo } = storeToRefs(userStore);
 				</view>
 			</template>
 		</custom-navbar>
+		<view class="action-item">
+			<button hover-class="none" plain open-type="contact">联系客服</button>
+		</view>
+		<view class="action-item">
+			<button hover-class="none" plain @click="clearCache">清除缓存</button>
+		</view>
+		<view class="action-item">
+			<button hover-class="none" plain @click="logout">退出登录</button>
+		</view>
 	</view>
 </template>
 <style lang="scss" scoped>
@@ -50,6 +65,19 @@ const { userinfo } = storeToRefs(userStore);
 			font-size: 20rpx;
 			color: #6d6d6d;
 		}
+	}
+}
+.action-item {
+	height: 80rpx;
+	padding: 0 10rpx;
+	border-bottom: 1px solid #f3f3f3;
+	button {
+		height: 100%;
+		line-height: 80rpx;
+		background: transparent;
+		overflow: hidden;
+		border: none;
+		font-size: 28rpx;
 	}
 }
 </style>

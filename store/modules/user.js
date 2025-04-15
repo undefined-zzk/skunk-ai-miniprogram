@@ -6,10 +6,11 @@ import {
 } from 'vue'
 export const useUserStore = defineStore('user', () => {
 	const userinfo = ref({
-		name: 'null11',
-		uuid: '793389',
-		avatar: ''
+		name: '',
+		uuid: '',
+		avatar: '',
 	})
+	const remeber = ref(false)
 	const skunkToken = ref('')
 	// 退出登录
 	const logout = () => {
@@ -26,12 +27,13 @@ export const useUserStore = defineStore('user', () => {
 	return {
 		userinfo,
 		skunkToken,
-		logout
+		logout,
+		remeber
 	}
 }, {
 	persist: {
 		key: 'skunk-user',
-		pick: ['userinfo', 'skunkToken'],
+		pick: ['userinfo', 'skunkToken', 'remeber'],
 		storage: {
 			setItem: (key, value) => uni.setStorageSync(key, value),
 			getItem: (key) => uni.getStorageSync(key),

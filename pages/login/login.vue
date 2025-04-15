@@ -14,7 +14,15 @@
 						<image v-if="avatar" :src="avatar" mode="aspectFill" />
 						<text v-else>选择头像</text>
 					</button>
-					<input cursor-color="#4e6cff" maxlength="10" type="nickname" placeholder="请输入昵称" @blur="handleNicknameBlur" />
+					<input cursor-color="#4e6cff" v-model="nickName" maxlength="6" type="nickname" placeholder="请输入昵称" @blur="handleNicknameBlur" />
+				</view>
+				<view class="rember">
+					<checkbox-group @change="checkboxChange">
+						<label>
+							<checkbox :value="true" color="#4e6cff" :checked="remeber" />
+							<text>记住我</text>
+						</label>
+					</checkbox-group>
 				</view>
 				<button type="default" @click="login">登录</button>
 				<view class="remark">说明:用户信息只保存于本地,进行虚拟登录</view>
@@ -27,15 +35,19 @@
 import { useUserStore } from '@/store/modules/user';
 import { storeToRefs } from 'pinia';
 const userStore = useUserStore();
-const { userinfo, skunkToken } = storeToRefs(userStore);
+const { userinfo, skunkToken, remeber } = storeToRefs(userStore);
 const loading = ref(false);
 const avatar = ref('');
 const nickName = ref('');
+
 const handleChooseAvatar = (e) => {
 	avatar.value = e.detail.avatarUrl;
 };
 const handleNicknameBlur = (e) => {
 	nickName.value = e.detail.value;
+};
+const checkboxChange = (e) => {
+	remeber.value = e.detail.value[0] || false;
 };
 const login = () => {
 	if (!avatar.value) {
@@ -76,6 +88,13 @@ function generateWeChatUUID() {
 		return Date.now() + '-' + Math.random().toString(36).substr(2, 8);
 	}
 }
+
+onLoad(() => {
+	if (!Boolean(remeber.value)) return;
+	const { name: cacheName, avatar: cacheAvatar } = userinfo.value;
+	nickName.value = cacheName;
+	avatar.value = cacheAvatar;
+});
 </script>
 
 <style lang="scss" scoped>
@@ -165,6 +184,16 @@ $bar: var(--status-bar-height);
 						font-size: 24rpx;
 						color: #808080;
 					}
+				}
+			}
+			.rember {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin-bottom: 10rpx;
+				text {
+					color: $primary-color;
+					font-size: 24rpx;
 				}
 			}
 			& > button {

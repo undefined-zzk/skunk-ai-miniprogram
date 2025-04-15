@@ -1,6 +1,13 @@
 import App from './App'
 import pinia from './store'
 import 'normalize.css'
+import {
+	initRouterInterceptor
+} from '@/utils/interceptors.js'
+
+initRouterInterceptor()
+
+
 // #ifndef VUE3
 import Vue from 'vue'
 import './uni.promisify.adaptor'
