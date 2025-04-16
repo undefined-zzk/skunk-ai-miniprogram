@@ -10,7 +10,7 @@ const props = defineProps({
 	<view class="custom-navbar">
 		<view class="navbar">
 			<view class="left"></view>
-			<view class="cener">{{ title }}</view>
+			<view class="center">{{ title }}</view>
 			<view class="right"></view>
 		</view>
 		<slot></slot>

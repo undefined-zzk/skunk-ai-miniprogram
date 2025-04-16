@@ -2,14 +2,25 @@
 import { useUserStore } from '@/store/modules/user';
 import { storeToRefs } from 'pinia';
 import { useAuth } from '../../composables/useAuth';
+import { useMessageStore } from '@/store/modules/message';
+import { getCurrentInstance } from 'vue';
+const { proxy } = getCurrentInstance();
 useAuth();
 const userStore = useUserStore();
+const messageStore = useMessageStore();
+
 const { userinfo } = storeToRefs(userStore);
-const clearCache = () => {};
+const { messageList } = storeToRefs(messageStore);
+const clearCache = async () => {
+	await proxy.$toast.showToast('清除中', { icon: 'loading' });
+	messageList.value = {};
+	proxy.$toast.showSuccessToast('清除完成');
+};
 
 const logout = () => {
 	userStore.logout();
 };
+onShow(() => {});
 </script>
 
 <template>

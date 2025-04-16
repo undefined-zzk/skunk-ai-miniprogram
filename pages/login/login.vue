@@ -10,19 +10,12 @@
 		<view class="login">
 			<view class="weixin">
 				<view class="form">
+					<view class="name">SkunkAI</view>
 					<button open-type="chooseAvatar" @chooseavatar="handleChooseAvatar">
 						<image v-if="avatar" :src="avatar" mode="aspectFill" />
 						<text v-else>选择头像</text>
 					</button>
 					<input cursor-color="#4e6cff" v-model="nickName" maxlength="6" type="nickname" placeholder="请输入昵称" @blur="handleNicknameBlur" />
-				</view>
-				<view class="rember">
-					<checkbox-group @change="checkboxChange">
-						<label>
-							<checkbox :value="true" color="#4e6cff" :checked="remeber" />
-							<text>记住我</text>
-						</label>
-					</checkbox-group>
 				</view>
 				<button type="default" @click="login">登录</button>
 				<view class="remark">说明:用户信息只保存于本地,进行虚拟登录</view>
@@ -34,8 +27,10 @@
 <script setup>
 import { useUserStore } from '@/store/modules/user';
 import { storeToRefs } from 'pinia';
+import { getCurrentInstance } from 'vue';
+const { proxy } = getCurrentInstance();
 const userStore = useUserStore();
-const { userinfo, skunkToken, remeber } = storeToRefs(userStore);
+const { userinfo, skunkToken } = storeToRefs(userStore);
 const loading = ref(false);
 const avatar = ref('');
 const nickName = ref('');
@@ -46,37 +41,19 @@ const handleChooseAvatar = (e) => {
 const handleNicknameBlur = (e) => {
 	nickName.value = e.detail.value;
 };
-const checkboxChange = (e) => {
-	remeber.value = e.detail.value[0] || false;
-};
-const login = () => {
+
+const login = async () => {
 	if (!avatar.value) {
-		return uni.showToast({
-			title: '请上传头像',
-			mask: true,
-			icon: 'error'
-		});
+		return proxy.$toast.showErrorToast('请上传头像');
 	}
 	if (!nickName.value) {
-		return uni.showToast({
-			title: '请输入昵称',
-			mask: true,
-			icon: 'error'
-		});
+		return proxy.$toast.showErrorToast('请输入昵称');
 	}
 	userinfo.value = { name: nickName.value, avatar: avatar.value, uuid: Math.round(Math.random() * 20000) };
 	skunkToken.value = generateWeChatUUID();
-	uni.showToast({
-		title: '登录成功',
-		mask: true,
-		icon: 'loading',
-		success() {
-			setTimeout(() => {
-				uni.reLaunch({
-					url: '/pages/index/index'
-				});
-			}, 1500);
-		}
+	await proxy.$toast.showToast('登录成功', { icon: 'loading' });
+	uni.reLaunch({
+		url: '/pages/index/index'
 	});
 };
 
@@ -89,11 +66,12 @@ function generateWeChatUUID() {
 	}
 }
 
-onLoad(() => {
-	if (!Boolean(remeber.value)) return;
-	const { name: cacheName, avatar: cacheAvatar } = userinfo.value;
-	nickName.value = cacheName;
-	avatar.value = cacheAvatar;
+onShow(() => {
+	if (skunkToken.value) {
+		uni.reLaunch({
+			url: '/pages/index/index'
+		});
+	}
 });
 </script>
 
@@ -158,9 +136,16 @@ $bar: var(--status-bar-height);
 				align-items: center;
 				margin-bottom: 20rpx;
 				gap: 30rpx;
+				.name {
+					-webkit-text-stroke: 2rpx $primary-color;
+					-o-text-stroke: 2rpx $primary-color;
+					-moz-text-stroke: 2rpx $primary-color;
+					color: transparent;
+				}
 				input {
 					border-bottom: 2rpx solid #f3f3f3;
 					padding-left: 20rpx;
+					margin: 30rpx 0;
 				}
 				::v-deep .input-placeholder {
 					font-size: 24rpx;
@@ -184,16 +169,6 @@ $bar: var(--status-bar-height);
 						font-size: 24rpx;
 						color: #808080;
 					}
-				}
-			}
-			.rember {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				margin-bottom: 10rpx;
-				text {
-					color: $primary-color;
-					font-size: 24rpx;
 				}
 			}
 			& > button {

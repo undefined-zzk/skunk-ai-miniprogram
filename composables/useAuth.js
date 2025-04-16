@@ -20,8 +20,10 @@ export const useAuth = () => {
 				icon: 'error',
 				mask: true,
 				success() {
-					uni.reLaunch({
-						url: '/pages/login/login'
+					setTimeout(() => {
+						uni.reLaunch({
+							url: '/pages/login/login'
+						})
 					})
 				}
 			})

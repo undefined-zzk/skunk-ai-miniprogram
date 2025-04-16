@@ -10,7 +10,6 @@ export const useUserStore = defineStore('user', () => {
 		uuid: '',
 		avatar: '',
 	})
-	const remeber = ref(false)
 	const skunkToken = ref('')
 	// 退出登录
 	const logout = () => {
@@ -28,12 +27,11 @@ export const useUserStore = defineStore('user', () => {
 		userinfo,
 		skunkToken,
 		logout,
-		remeber
 	}
 }, {
 	persist: {
 		key: 'skunk-user',
-		pick: ['userinfo', 'skunkToken', 'remeber'],
+		pick: ['userinfo', 'skunkToken'],
 		storage: {
 			setItem: (key, value) => uni.setStorageSync(key, value),
 			getItem: (key) => uni.getStorageSync(key),

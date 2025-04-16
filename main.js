@@ -3,8 +3,8 @@ import pinia from './store'
 import 'normalize.css'
 import {
 	initRouterInterceptor
-} from '@/utils/interceptors.js'
-
+} from '@/utils/interceptors'
+import * as toast from '@/utils/toast'
 initRouterInterceptor()
 
 
@@ -25,6 +25,7 @@ import {
 } from 'vue'
 export function createApp() {
 	const app = createSSRApp(App)
+	app.config.globalProperties.$toast = toast
 	app.use(pinia)
 	return {
 		app

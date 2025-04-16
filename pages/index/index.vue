@@ -1,16 +1,20 @@
 <template>
 	<view class="content">
 		<custom-navbar title="SkunkAI"></custom-navbar>
-		<navigator url="/pages/login/login">去登s录</navigator>
+		<view class="msg-box">
+			<div class="empty" v-if="currentMsgIsEmpty">currentMsgIsEmpty</div>
+		</view>
 	</view>
 </template>
 
 <script setup>
 import { useAuth } from '../../composables/useAuth';
+import { storeToRefs } from 'pinia';
+import { useMessageStore } from '@/store/modules/message';
 useAuth();
-onShow(() => {
-	console.log('onShow');
-});
+
+const messageStore = useMessageStore();
+const { messageList, currentMsgIsEmpty } = storeToRefs(messageStore);
 </script>
 
 <style lang="scss" scoped></style>
