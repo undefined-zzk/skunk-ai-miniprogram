@@ -10,7 +10,8 @@
 		<view class="login">
 			<view class="weixin">
 				<view class="form">
-					<view class="name">SkunkAI</view>
+					<view class="name">嗨，我是SkunkAI</view>
+					<view class="desc">我是AI智能助手,可以帮你搜索/答疑/写作,请把你的任务交给我吧。</view>
 					<button open-type="chooseAvatar" @chooseavatar="handleChooseAvatar">
 						<image v-if="avatar" :src="avatar" mode="aspectFill" />
 						<text v-else>选择头像</text>
@@ -18,7 +19,14 @@
 					<input cursor-color="#4e6cff" v-model="nickName" maxlength="6" type="nickname" placeholder="请输入昵称" @blur="handleNicknameBlur" />
 				</view>
 				<button type="default" @click="login">登录</button>
-				<view class="remark">说明:用户信息只保存于本地,进行虚拟登录</view>
+				<view class="remark">
+					<checkbox-group @change="changeAgree">
+						<label>
+							<checkbox style="transform: scale(0.7)" color="#4e6cff" :value="true" />
+							<text>说明:用户信息只保存于本地,进行虚拟登录</text>
+						</label>
+					</checkbox-group>
+				</view>
 			</view>
 		</view>
 	</view>
@@ -34,7 +42,7 @@ const { userinfo, skunkToken } = storeToRefs(userStore);
 const loading = ref(false);
 const avatar = ref('');
 const nickName = ref('');
-
+const agree = ref(false);
 const handleChooseAvatar = (e) => {
 	avatar.value = e.detail.avatarUrl;
 };
@@ -42,12 +50,18 @@ const handleNicknameBlur = (e) => {
 	nickName.value = e.detail.value;
 };
 
+const changeAgree = (e) => {
+	agree.value = e.detail.value[0];
+};
 const login = async () => {
 	if (!avatar.value) {
 		return proxy.$toast.showErrorToast('请上传头像');
 	}
 	if (!nickName.value) {
 		return proxy.$toast.showErrorToast('请输入昵称');
+	}
+	if (!agree.value) {
+		return proxy.$toast.showToast('请同意说明');
 	}
 	userinfo.value = { name: nickName.value, avatar: avatar.value, uuid: Math.round(Math.random() * 20000) };
 	skunkToken.value = generateWeChatUUID();
@@ -141,6 +155,12 @@ $bar: var(--status-bar-height);
 					-o-text-stroke: 2rpx $primary-color;
 					-moz-text-stroke: 2rpx $primary-color;
 					color: transparent;
+				}
+				.desc {
+					text-align: center;
+					color: $primary-color;
+					font-size: 24rpx;
+					width: 60%;
 				}
 				input {
 					border-bottom: 2rpx solid #f3f3f3;

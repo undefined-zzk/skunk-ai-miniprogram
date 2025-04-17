@@ -16,7 +16,7 @@ export const useMessageStore = defineStore('message', () => {
 	})
 	// 当前对话内容是否为空
 	const currentMsgIsEmpty = computed(() => {
-		return currentMsgList.length == 0
+		return currentMsgList.value.length == 0
 	})
 	return {
 		currentMsgList,
