@@ -28,9 +28,13 @@ const pt = ref(top * 2 + 'rpx');
 </template>
 <style lang="scss" scoped>
 .custom-navbar {
+	position: sticky;
+	top: 0;
+	left: 0;
+	width: 100%;
 	padding-top: v-bind(pt);
+	z-index: 999;
 	min-height: 88rpx;
-	// 兼容性
 	background: linear-gradient(to bottom, $gradient-color1, $gradient-color2, $gradient-color2, #ffffff);
 	background: -webkit-linear-gradient(to bottom, $gradient-color1, $gradient-color2, $gradient-color2, #ffffff);
 	background: -moz-linear-gradient(to bottom, $gradient-color1, $gradient-color2, $gradient-color2, #ffffff);

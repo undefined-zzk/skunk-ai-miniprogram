@@ -48,6 +48,7 @@ const { messageList, currentMsgIsEmpty } = storeToRefs(messageStore);
 .content {
 	.msg-box {
 		padding: 10rpx;
+		margin-top: 200rpx;
 		.empty {
 			width: 80%;
 			margin: 0 auto;
