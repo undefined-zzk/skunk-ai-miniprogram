@@ -8,8 +8,8 @@
 				</view>
 			</template>
 		</custom-navbar>
-		<view class="msg-box">
-			<div class="empty" v-if="currentMsgIsEmpty">
+		<view class="msg-box" :class="{ noChat: currentMsgIsEmpty }">
+			<view class="empty" v-if="currentMsgIsEmpty">
 				<view class="logo">
 					<image src="/common/icons/skunk.svg" mode=""></image>
 				</view>
@@ -19,8 +19,11 @@
 					</view>
 					<view class="sub-title">我可以帮你写代码、写作各种创意内容，请把你的任务交给我吧~</view>
 				</view>
-			</div>
-			<msg-input></msg-input>
+			</view>
+			<view class="msgs" v-else>
+				<message-item v-for="item in currentMsgList" :item="item" :key="item.id"></message-item>
+			</view>
+			<msg-input class="msg-input-bottom"></msg-input>
 		</view>
 	</view>
 </template>
@@ -30,9 +33,8 @@ import { useAuth } from '../../composables/useAuth';
 import { storeToRefs } from 'pinia';
 import { useMessageStore } from '@/store/modules/message';
 useAuth();
-
 const messageStore = useMessageStore();
-const { messageList, currentMsgIsEmpty } = storeToRefs(messageStore);
+const { currentMsgList, currentMsgIsEmpty } = storeToRefs(messageStore);
 </script>
 
 <style lang="scss" scoped>
@@ -46,13 +48,35 @@ const { messageList, currentMsgIsEmpty } = storeToRefs(messageStore);
 	}
 }
 .content {
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
 	.msg-box {
-		padding: 10rpx;
-		margin-top: 200rpx;
+		flex: 1;
+		flex-shrink: 0;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		&.noChat {
+			align-items: center;
+			margin-top: 80rpx;
+			// justify-content: center;
+		}
+		.msgs {
+			flex: 1;
+			flex-shrink: 0;
+			overflow-y: auto;
+			padding: 0 20rpx;
+		}
+		.msg-input-bottom {
+			width: 100%;
+			height: fit-content;
+		}
 		.empty {
 			width: 80%;
-			margin: 0 auto;
-			margin-bottom: 20rpx;
+			margin: 0 auto 20rpx;
+
 			.logo {
 				image {
 					width: 80rpx;

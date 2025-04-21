@@ -1,6 +1,7 @@
 import App from './App'
 import pinia from './store'
 import 'normalize.css'
+
 import {
 	initRouterInterceptor
 } from '@/utils/interceptors'

@@ -1,26 +1,81 @@
 <script setup>
+import { storeToRefs } from 'pinia';
+import { useMessageStore } from '@/store/modules/message';
+import { getCurrentInstance } from 'vue';
+import { nanoid } from 'nanoid/non-secure';
+import { request } from '@/utils/request';
+const messageStore = useMessageStore();
+const { currentMsgIsEmpty, currentMsgList, currentKey, currentMsgLength, everyMaxLen } = storeToRefs(messageStore);
 const { disabled } = defineProps({
 	disabled: {
 		type: Boolean,
 		defalut: false
 	}
 });
-const emits = defineEmits(['sendMessage']);
+const { proxy } = getCurrentInstance();
 const question = ref('');
+const tempQuestion = ref('');
 const inputRef = ref();
 const autoHeight = ref(false);
 const deepthink = ref(false);
+const role = ref('user');
+const modelTypes = ref({
+	chat: 'deepseek-chat',
+	reasoner: 'deepseek-reasoner'
+});
 
 const disabledBtn = computed(() => {
 	return question.value.length <= 0 || disabled;
 });
 
+const cacheMsgData = () => {
+	messageStore.setCacheMsgObj(currentKey.value, currentMsgList.value);
+};
+
 // 发送消息
-const sendMsg = () => {
-	emits('sendMessage', {
-		question: question.value,
-		deepthink: deepthink.value
-	});
+const sendMsg = async () => {
+	try {
+		if (currentMsgLength.value >= everyMaxLen.value) return proxy.$toast.showToast('此对话已达限制，请新建对话');
+		const messageId = nanoid();
+		const msgItem = {
+			role: role.value,
+			question: question.value || tempQuestion.value,
+			id: messageId,
+			answer: '',
+			lzstring: false,
+			loading: true,
+			copySuccess: false,
+			createtime: Date.now()
+		};
+		currentMsgList.value = [...currentMsgList.value, msgItem];
+		cacheMsgData();
+		question.value = '';
+		// 发起请求
+		const list = currentMsgList.value.map((item) => ({ role: item.role, question: item.question, answer: item.answer }));
+		const messages = [];
+		list.forEach((item) => {
+			const user = {
+				role: item.role,
+				content: item.question
+			};
+			const assistant = {
+				role: 'assistant',
+				content: item.answer || ''
+			};
+			messages.push(user, assistant);
+		});
+		// 确保最后一个是user
+		messages.splice(messages.length - 1, 1);
+		const res = await request('/chat/completions', 'POST', {
+			messages,
+			model: deepthink.value ? modelTypes.value['reasoner'] : modelTypes.value['chat'],
+			stream: false
+		});
+		console.log('res', res);
+	} catch (err) {
+		console.log('err', err);
+	} finally {
+	}
 };
 </script>
 <template>
@@ -36,7 +91,6 @@ const sendMsg = () => {
 			:autoHeight="autoHeight"
 			:inputBorder="false"
 			disableColor="#f3f4f6"
-			focus
 			trim
 			:styles="{
 				backgroundColor: '#f3f4f6'
@@ -54,11 +108,13 @@ const sendMsg = () => {
 			</view>
 			<view class="right">
 				<view class="icon2" @click.stop="sendMsg" :class="{ disabled: disabledBtn }">
-					<image src="/common/icons/send.svg" mode=""></image>
+					<image v-if="true" src="/common/icons/send.svg" mode=""></image>
+					<image v-else-if="false" class="loading" src="/common/icons/loading-white.svg" mode=""></image>
 				</view>
 			</view>
 		</view>
 	</view>
+	<view class="statement" v-if="!currentMsgIsEmpty">内容由AI生成,仅供参考</view>
 </template>
 
 <style lang="scss" scoped>
@@ -116,8 +172,22 @@ const sendMsg = () => {
 					width: 30rpx;
 					height: 30rpx;
 				}
+				.loading {
+					animation: loading 1s linear infinite;
+				}
 			}
 		}
+	}
+}
+.statement {
+	font-size: 24rpx;
+	color: #bfbfbf;
+	text-align: center;
+	margin-top: 10rpx;
+}
+@keyframes loading {
+	100% {
+		transform: rotate(360deg);
 	}
 }
 </style>
