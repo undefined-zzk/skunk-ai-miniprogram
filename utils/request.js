@@ -3,7 +3,7 @@ export const request = (url, method, data = {}) => {
 		if (!method) {
 			method = 'GET'
 		}
-		uni.request({
+		const requestTask = uni.request({
 			url: `https://api.deepseek.com/v1${url}`,
 			method,
 			header: {
@@ -13,7 +13,10 @@ export const request = (url, method, data = {}) => {
 			data,
 			timeout: 60000,
 			success(res) {
-				resolve(res.data)
+				resolve({
+					data: res.data,
+					requestTask
+				})
 			},
 			fail(err) {
 				reject(err)

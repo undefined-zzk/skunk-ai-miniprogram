@@ -34,47 +34,83 @@ const cacheMsgData = () => {
 
 // 发送消息
 const sendMsg = async () => {
-	try {
-		if (currentMsgLength.value >= everyMaxLen.value) return proxy.$toast.showToast('此对话已达限制，请新建对话');
-		const messageId = nanoid();
-		const msgItem = {
-			role: role.value,
-			question: question.value || tempQuestion.value,
-			id: messageId,
-			answer: '',
-			lzstring: false,
-			loading: true,
-			copySuccess: false,
-			createtime: Date.now()
+	let currentItem = null;
+	if (currentMsgLength.value >= everyMaxLen.value) return proxy.$toast.showToast('此对话已达限制，请新建对话');
+	const messageId = nanoid();
+	const msgItem = {
+		role: role.value,
+		question: question.value || tempQuestion.value,
+		id: messageId,
+		answer: '',
+		lzstring: false,
+		loading: true,
+		copySuccess: false,
+		createtime: Date.now()
+	};
+	currentMsgList.value = [...currentMsgList.value, msgItem];
+	cacheMsgData();
+	question.value = '';
+	// 发起请求
+	const list = currentMsgList.value.map((item) => ({ role: item.role, question: item.question, answer: item.answer }));
+	const messages = [];
+	list.forEach((item) => {
+		const user = {
+			role: item.role,
+			content: item.question
 		};
-		currentMsgList.value = [...currentMsgList.value, msgItem];
-		cacheMsgData();
-		question.value = '';
-		// 发起请求
-		const list = currentMsgList.value.map((item) => ({ role: item.role, question: item.question, answer: item.answer }));
-		const messages = [];
-		list.forEach((item) => {
-			const user = {
-				role: item.role,
-				content: item.question
-			};
-			const assistant = {
-				role: 'assistant',
-				content: item.answer || ''
-			};
-			messages.push(user, assistant);
-		});
-		// 确保最后一个是user
-		messages.splice(messages.length - 1, 1);
-		const res = await request('/chat/completions', 'POST', {
+		const assistant = {
+			role: 'assistant',
+			content: item.answer || ''
+		};
+		messages.push(user, assistant);
+	});
+	// 确保最后一个是user
+	messages.splice(messages.length - 1, 1);
+	currentItem = currentMsgList.value.find((item) => item.id === messageId);
+	try {
+		const { data: stream, requestTask } = await request('/chat/completions', 'POST', {
 			messages,
 			model: deepthink.value ? modelTypes.value['reasoner'] : modelTypes.value['chat'],
-			stream: false
+			stream: true
 		});
-		console.log('res', res);
+		console.log('requestTask', requestTask);
+		const decoder = new TextDecoder();
+		let buffer = '';
+		for await (const chunk of stream) {
+			buffer += typeof chunk === 'string' ? chunk : decoder.decode(chunk);
+			const events = buffer.split('\n\n');
+			buffer = events.pop() || '';
+			for (const event of events) {
+				let chunkContent;
+				const match = event.match(/^data: (.*)/);
+				if (match && match[1] !== '[DONE]') {
+					try {
+						const chunk = JSON.parse(match[1]);
+						if (deepthink.value) {
+							const reasonContent = chunk.choices[0].delta.reasoning_content || '';
+							if (reasonContent) {
+								chunkContent = reasonContent;
+							} else {
+								chunkContent = chunk.choices[0]?.delta?.content || '';
+							}
+						} else {
+							chunkContent = chunk.choices[0]?.delta?.content || '';
+						}
+						if (chunkContent) {
+							currentItem.loading = false;
+							currentItem.answer += chunkContent;
+						}
+					} catch (e) {
+						console.error('JSON parse error:', e);
+					}
+				} else {
+				}
+			}
+		}
 	} catch (err) {
 		console.log('err', err);
 	} finally {
+		cacheMsgData();
 	}
 };
 </script>
@@ -114,7 +150,7 @@ const sendMsg = async () => {
 			</view>
 		</view>
 	</view>
-	<view class="statement" v-if="!currentMsgIsEmpty">内容由AI生成,仅供参考</view>
+	<view class="statement" v-if="!currentMsgIsEmpty">内容由AI生成,仅供参考1</view>
 </template>
 
 <style lang="scss" scoped>
