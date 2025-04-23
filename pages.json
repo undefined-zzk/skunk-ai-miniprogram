@@ -3,7 +3,7 @@
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "首页",
-				"enablePullDownRefresh": true
+				"enablePullDownRefresh": false
 			}
 		},
 		{
@@ -52,5 +52,9 @@
 			"^vue-file-(.*)": "packageName/path/to/vue-file-$1.vue"
 		}
 	},
-	"uniIdRouter": {}
+	"uniIdRouter": {},
+	"workers": {
+		"path": "static/workers",
+		"isSubpackage": true
+	}
 }

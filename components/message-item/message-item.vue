@@ -1,9 +1,25 @@
 <script setup>
-defineProps({
+const { item } = defineProps({
 	item: {
 		type: Object,
 		default: () => ({})
 	}
+});
+const comItemAnswer = computed(() => {
+	if (!item.answer) {
+		return;
+	}
+	let htmlString = '';
+	if (item.answer.split('```').length % 2) {
+		let content = item.answer;
+		if (content[content.length - 1] != '\n') {
+			content += '\n';
+		}
+		htmlString = content;
+	} else {
+		htmlString = item.answer;
+	}
+	return htmlString;
 });
 </script>
 <template>
@@ -13,8 +29,10 @@ defineProps({
 		</view>
 		<view class="skunk">
 			<image class="logo" src="/common/icons/skunk.svg" mode="aspectFit"></image>
-			<image class="loading" v-if="item.loading" src="/common/icons/loading.svg" mode=""></image>
-			<view class="msg" v-html="item.answer"></view>
+			<view class="content-loading">
+				<zero-markdown-view themeColor="#282C35" style="width: 100%" :markdown="comItemAnswer"></zero-markdown-view>
+				<image class="loading" v-if="item.loading" src="/common/icons/loading.svg" mode=""></image>
+			</view>
 		</view>
 	</view>
 </template>
@@ -36,6 +54,7 @@ defineProps({
 			border-radius: 20rpx;
 			padding: 10rpx;
 			max-width: 80%;
+			min-width: 60rpx;
 			white-space: pre-wrap;
 			word-break: break-all;
 		}
@@ -52,14 +71,17 @@ defineProps({
 		}
 		.logo {
 		}
+		.content-loading {
+			display: flex;
+			flex-direction: column;
+			max-width: 90%;
+			overflow: hidden;
+			word-break: break-all;
+		}
 		.loading {
 			width: 40rpx;
 			height: 40rpx;
 			animation: loading 1s linear infinite;
-		}
-		.msg {
-			max-width: 80%;
-			overflow-x: auto;
 		}
 	}
 	@keyframes loading {

@@ -57,6 +57,9 @@
 			"postcss": true,
 			"minified": true
 		},
+		"appjson": {
+			"workers": "workers"
+		},
 		"usingComponents": true,
 		"requiredPrivateInfos": [
 			"chooseAddress",
@@ -68,7 +71,6 @@
 				"desc": "你的位置信息将用于小程序位置接口展示"
 			}
 		}
-
 	},
 	"mp-alipay": {
 		"usingComponents": true

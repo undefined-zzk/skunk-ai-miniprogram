@@ -76,7 +76,7 @@ const { currentMsgList, currentMsgIsEmpty } = storeToRefs(messageStore);
 		.empty {
 			width: 80%;
 			margin: 0 auto 20rpx;
-
+			transition: all 0.3s linear;
 			.logo {
 				image {
 					width: 80rpx;
