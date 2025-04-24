@@ -28,7 +28,6 @@ const modelTypes = ref({
 	reasoner: 'deepseek-reasoner'
 });
 let worker = null;
-storageClearIfNeeded();
 // 创建新的线程
 const createNewWorker = () => {
 	killWorker();
@@ -99,8 +98,9 @@ async function sendMsg() {
 			killRequest();
 		});
 	} catch (err) {
+		console.log(err);
 		if (err.errMsg.indexOf('timeout') != -1) {
-			currentItem.answer = '服务繁忙，请稍后再试';
+			currentItem.answer = err.errMsg || '服务繁忙，请稍后再试';
 		}
 		killRequest();
 		processLoading.value = false;
@@ -171,6 +171,9 @@ function killRequest() {
 	initMsgList();
 	killWorker();
 }
+onLoad(() => {
+	storageClearIfNeeded();
+});
 </script>
 <template>
 	<view class="msg-input">

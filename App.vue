@@ -10,4 +10,10 @@ onHide(() => {
 });
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+view,
+text,
+rich-text {
+	box-sizing: border-box;
+}
+</style>

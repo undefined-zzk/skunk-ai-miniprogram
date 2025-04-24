@@ -10,10 +10,10 @@ const userStore = useUserStore();
 const messageStore = useMessageStore();
 
 const { userinfo } = storeToRefs(userStore);
-const { messageList } = storeToRefs(messageStore);
+const { cacheMsgObj } = storeToRefs(messageStore);
 const clearCache = async () => {
 	await proxy.$toast.showToast('清除中', { icon: 'loading' });
-	messageList.value = {};
+	cacheMsgObj.value = [];
 	proxy.$toast.showSuccessToast('清除完成');
 };
 

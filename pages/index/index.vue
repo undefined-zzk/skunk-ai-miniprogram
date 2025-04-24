@@ -3,7 +3,7 @@
 		<custom-navbar title="SkunkAI">
 			<template #left>
 				<view class="nav-icon">
-					<image src="/common/icons/aside.svg"></image>
+					<image src="/common/icons/aside.svg" @click="showAside = true"></image>
 					<image src="/common/icons/new_chat.svg" mode=""></image>
 				</view>
 			</template>
@@ -25,6 +25,7 @@
 			</view>
 			<msg-input class="msg-input-bottom"></msg-input>
 		</view>
+		<aside-history v-model="showAside"></aside-history>
 	</view>
 </template>
 
@@ -33,6 +34,7 @@ import { useAuth } from '../../composables/useAuth';
 import { storeToRefs } from 'pinia';
 import { useMessageStore } from '@/store/modules/message';
 useAuth();
+const showAside = ref(false);
 const messageStore = useMessageStore();
 const { currentMsgList, currentMsgIsEmpty } = storeToRefs(messageStore);
 </script>

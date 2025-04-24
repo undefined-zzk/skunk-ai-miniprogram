@@ -57,9 +57,6 @@
 			"postcss": true,
 			"minified": true
 		},
-		"appjson": {
-			"workers": "workers"
-		},
 		"usingComponents": true,
 		"requiredPrivateInfos": [
 			"chooseAddress",

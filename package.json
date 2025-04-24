@@ -3,6 +3,7 @@
 		"unplugin-auto-import": "^19.1.2"
 	},
 	"dependencies": {
+		"dayjs": "^1.11.13",
 		"nanoid": "^5.1.5",
 		"normalize.css": "^8.0.1",
 		"openai": "^4.95.1",

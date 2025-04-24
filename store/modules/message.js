@@ -9,18 +9,19 @@ import {
 const CACHEKEY = 'skunk-message'
 export const useMessageStore = defineStore('message', () => {
 	const cacheKey = JSON.parse(uni.getStorageSync(CACHEKEY) || '{}').currentKey;
-	const cahceMsgObjInitData = JSON.parse(uni.getStorageSync(CACHEKEY) || '{}').cacheMsgObj
+	const cahceMsgObjInitData = JSON.parse(uni.getStorageSync(CACHEKEY) || '[]').cacheMsgObj
 	// 每次对话最多30次
 	const everyMaxLen = ref(30)
 	// 时间对象key
 	const currentKey = ref(cacheKey || Date.now())
-	// 所有的对话列表 以对话时间为key,内容为value {'2025-04-16 09:56:00':[{}],maxLen:10}
-	const cacheMsgObj = ref(cahceMsgObjInitData || {})
+	// 所有的对话列表 以对话时间为key,内容为value 
+	const cacheMsgObj = ref(cahceMsgObjInitData || [])
 	// 当前对话内容
-	const currentMsgList = ref(cacheMsgObj.value[currentKey.value] || [])
+	const data = cacheMsgObj.value.find(item => item.time === currentKey.value)
+	const currentMsgList = ref(data?.list || [])
 	// 所有对话内容是否为空
 	const cacheMsgIsEmpty = computed(() => {
-		return Object.keys(cacheMsgObj.value).length == 0
+		return cacheMsgObj.value.length == 0
 	})
 	// 当前对话内容是否为空
 	const currentMsgIsEmpty = computed(() => {
@@ -28,12 +29,34 @@ export const useMessageStore = defineStore('message', () => {
 	})
 	// 当前对话已对话的次数
 	const currentMsgLength = computed(() => {
-		return cacheMsgObj.value['maxLen']
+		const item = cacheMsgObj.value.find(item => item.time === currentKey.value)
+		return item?.maxLen || 0
 	})
 	// 修改存储对话内容
 	const setCacheMsgObj = (key = currentKey.value, list = []) => {
-		cacheMsgObj.value[key] = list
-		cacheMsgObj.value['maxLen'] = list.length
+		const obj = {
+			time: key,
+			maxLen: list.length,
+			list,
+		}
+		const index = cacheMsgObj.value.findIndex(item => item.time === key)
+		if (index == -1) {
+			cacheMsgObj.value.push(obj)
+		} else {
+			cacheMsgObj.value.fill(obj, index, index + 1)
+		}
+	}
+	// 删除存储对话内容
+	const removeCacheMsgObj = (key) => {
+		cacheMsgObj.value = cacheMsgObj.value.filter(item => item.time !== key)
+	}
+	// 根据索引删除存储对话内容
+	const removeCacheMsgObjByIndex = (start, end) => {
+		if (start && end) {
+			cacheMsgObj.value.splice(start, end)
+		} else {
+			cacheMsgObj.value.splice(start)
+		}
 	}
 	return {
 		currentMsgList,
@@ -43,7 +66,9 @@ export const useMessageStore = defineStore('message', () => {
 		currentKey,
 		setCacheMsgObj,
 		currentMsgLength,
-		everyMaxLen
+		everyMaxLen,
+		removeCacheMsgObj,
+		removeCacheMsgObjByIndex
 	}
 }, {
 	persist: {
