@@ -4,7 +4,7 @@
 			<template #left>
 				<view class="nav-icon">
 					<image src="/common/icons/aside.svg" @click="showAside = true"></image>
-					<image src="/common/icons/new_chat.svg" mode=""></image>
+					<image src="/common/icons/new_chat.svg" mode="" @click="createNewChat"></image>
 				</view>
 			</template>
 		</custom-navbar>
@@ -33,10 +33,21 @@
 import { useAuth } from '../../composables/useAuth';
 import { storeToRefs } from 'pinia';
 import { useMessageStore } from '@/store/modules/message';
+import { showToast } from '@/utils/toast';
 useAuth();
 const showAside = ref(false);
 const messageStore = useMessageStore();
-const { currentMsgList, currentMsgIsEmpty } = storeToRefs(messageStore);
+const { currentMsgList, currentMsgIsEmpty, currentKey } = storeToRefs(messageStore);
+
+// 创建新的对话
+const createNewChat = () => {
+	if (currentMsgIsEmpty.value) {
+		showToast('已在最新对话中');
+		return;
+	}
+	currentKey.value = Date.now();
+	currentMsgList.value = [];
+};
 </script>
 
 <style lang="scss" scoped>
@@ -88,7 +99,7 @@ const { currentMsgList, currentMsgIsEmpty } = storeToRefs(messageStore);
 			.desc {
 				margin-top: 20rpx;
 				.title {
-					font-weight: 600;
+					font-weight: 700;
 					color: #000;
 					margin-bottom: 20rpx;
 				}

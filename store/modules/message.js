@@ -58,6 +58,17 @@ export const useMessageStore = defineStore('message', () => {
 			cacheMsgObj.value.splice(start)
 		}
 	}
+	// 修改当前对话内容
+	const updateCurrentMsgList = (time) => {
+		currentMsgList.value = cacheMsgObj.value.find(item => item.time === time)?.list || []
+	}
+	// 更新key
+	const updateCurrentMsgListKey = (oldKey, newKey) => {
+		const item = cacheMsgObj.value.find(item => item.time === oldKey)
+		if (item) {
+			item.time = newKey
+		}
+	}
 	return {
 		currentMsgList,
 		currentMsgIsEmpty,
@@ -68,7 +79,9 @@ export const useMessageStore = defineStore('message', () => {
 		currentMsgLength,
 		everyMaxLen,
 		removeCacheMsgObj,
-		removeCacheMsgObjByIndex
+		removeCacheMsgObjByIndex,
+		updateCurrentMsgList,
+		updateCurrentMsgListKey
 	}
 }, {
 	persist: {

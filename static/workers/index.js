@@ -5,9 +5,8 @@ worker.onMessage(async function(res) {
 			stream,
 			deepthink
 		} = res
-		const decoder = new TextDecoder();
 		for await (const chunk of stream) {
-			buffer += typeof chunk === 'string' ? chunk : decoder.decode(chunk);
+			buffer += chunk
 			const events = buffer.split('\n\n');
 			buffer = events.pop() || '';
 			for (const event of events) {

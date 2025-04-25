@@ -5,14 +5,14 @@ import { getCurrentInstance } from 'vue';
 import { nanoid } from 'nanoid/non-secure';
 import { request } from '@/utils/request';
 import { storageClearIfNeeded } from '@/utils/storage';
+import { useAsideStore } from '@/store/modules/aside';
+import { timeDiffNowDay } from '@/utils/time';
+import { config } from '@/static/config';
 const messageStore = useMessageStore();
+const asideStore = useAsideStore();
+const { asideChange } = storeToRefs(asideStore);
 const { currentMsgIsEmpty, currentMsgList, currentKey, currentMsgLength, everyMaxLen } = storeToRefs(messageStore);
-const { disabled } = defineProps({
-	disabled: {
-		type: Boolean,
-		defalut: false
-	}
-});
+
 const { proxy } = getCurrentInstance();
 const question = ref('');
 const tempQuestion = ref('');
@@ -28,13 +28,17 @@ const modelTypes = ref({
 	reasoner: 'deepseek-reasoner'
 });
 let worker = null;
+watch(currentKey, () => {
+	killRequest();
+});
+
 // 创建新的线程
 const createNewWorker = () => {
 	killWorker();
 	wx.preDownloadSubpackage({
 		packageType: 'workers',
 		success(res) {
-			worker = wx.createWorker('/static/workers/index.js', {
+			worker = wx.createWorker('static/workers/index.js', {
 				useExperimentalWorker: true
 			});
 			worker.onProcessKilled(() => {
@@ -50,9 +54,12 @@ const createNewWorker = () => {
 	});
 };
 const disabledBtn = computed(() => {
-	return (question.value.length <= 0 && !requestLoading.value && !processLoading.value) || disabled;
+	return question.value.length <= 0 && !requestLoading.value && !processLoading.value;
 });
 
+const disabledInput = computed(() => {
+	return processLoading.value || requestLoading.value;
+});
 const cacheMsgData = () => {
 	messageStore.setCacheMsgObj(currentKey.value, currentMsgList.value);
 };
@@ -64,49 +71,68 @@ function validSendBefore() {
 	if (currentMsgLength.value >= everyMaxLen.value) return proxy.$toast.showToast('此对话已达限制，请新建对话');
 	// 正在读取worker
 	if (createWorkerIng.value) return;
+	const day = timeDiffNowDay(currentKey.value);
+	// 当前如果对话不是今日的，更新它的key为今日对话
+	if (day != config.TIME.today) {
+		const newKey = Date.now();
+		messageStore.updateCurrentMsgListKey(currentKey.value, newKey);
+		currentKey.value = newKey;
+	}
 	createNewWorker();
 }
 
 // 发送消息
 async function sendMsg() {
 	const { currentItem, messages } = requestParams();
-	try {
-		requestLoading.value = true;
-		const { data: stream, requestTask } = await request('/chat/completions', 'POST', {
+	requestLoading.value = true;
+	setTimeout(() => {
+		requestLoading.value = false;
+		processLoading.value = true;
+	}, 1000);
+	abortTaskFn = uni.request({
+		url: `https://api.deepseek.com/v1/chat/completions`,
+		method: 'POST',
+		header: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer sk-921c241153c243e1956e7481787861f9`
+		},
+		data: {
 			messages,
 			model: deepthink.value ? modelTypes.value['reasoner'] : modelTypes.value['chat'],
 			stream: true
-		});
-		abortTaskFn = requestTask;
-		requestLoading.value = false;
-		processLoading.value = true;
-		const decoder = new TextDecoder();
-		let buffer = '';
-		worker.postMessage({
-			stream,
-			deepthink: deepthink.value
-		});
-		worker.onMessage((e) => {
-			if (e.chunk !== '[DONE]' && abortTaskFn) {
-				buffer += e.chunk;
-				currentItem.answer = buffer;
-				return;
+		},
+		timeout: 60000,
+		success(res) {
+			const stream = res.data;
+			requestLoading.value = false;
+			processLoading.value = true;
+			let buffer = '';
+			worker.postMessage({
+				stream,
+				deepthink: deepthink.value
+			});
+			worker.onMessage((e) => {
+				if (e.chunk !== '[DONE]' && abortTaskFn) {
+					buffer += e.chunk;
+					currentItem.answer = buffer;
+					return;
+				}
+				currentItem.loading = false;
+				abortTaskFn = null;
+				killRequest();
+			});
+		},
+		fail(err) {
+			console.log('failerr', err);
+			if (err.errMsg?.indexOf('timeout') != -1) {
+				currentItem.answer = err.errMsg || '服务繁忙，请稍后再试';
 			}
-			currentItem.loading = false;
-			processLoading.value = false;
-			abortTaskFn = null;
 			killRequest();
-		});
-	} catch (err) {
-		console.log(err);
-		if (err.errMsg.indexOf('timeout') != -1) {
-			currentItem.answer = err.errMsg || '服务繁忙，请稍后再试';
+		},
+		complete() {
+			requestLoading.value = false;
 		}
-		killRequest();
-		processLoading.value = false;
-	} finally {
-		requestLoading.value = false;
-	}
+	});
 }
 
 // 请求参数
@@ -158,7 +184,10 @@ function initMsgList() {
 }
 
 function killWorker() {
-	if (worker) worker.terminate();
+	if (worker) {
+		worker.terminate();
+		worker = null;
+	}
 }
 
 // 终止请求
@@ -168,6 +197,8 @@ function killRequest() {
 		abortTaskFn = null;
 		proxy.$toast.showToast('会话已终止');
 	}
+	processLoading.value = false;
+	requestLoading.value = false;
 	initMsgList();
 	killWorker();
 }
@@ -180,7 +211,7 @@ onLoad(() => {
 		<uni-easyinput
 			ref="inputRef"
 			type="textarea"
-			:disabled="disabled"
+			:disabled="disabledInput"
 			placeholderStyle="fontSize:24rpx"
 			:maxlength="50000"
 			:adjust-position="false"

@@ -1,34 +1,36 @@
 <template>
 	<view class="content">
-		<view class="title">
-			<view class="logo">
-				<image src="/common/icons/skunk.svg" mode=""></image>
-			</view>
-			<text>登录</text>
-			<view class=""></view>
-		</view>
-		<view class="login">
-			<view class="weixin">
-				<view class="form">
-					<view class="name">嗨，我是SkunkAI</view>
-					<view class="desc">我是AI智能助手,可以帮你搜索/答疑/写作,请把你的任务交给我吧。</view>
-					<button open-type="chooseAvatar" @chooseavatar="handleChooseAvatar">
-						<image v-if="avatar" :src="avatar" mode="aspectFill" />
-						<text v-else>选择头像</text>
-					</button>
-					<input cursor-color="#4e6cff" v-model="nickName" maxlength="6" type="nickname" placeholder="请输入昵称" @blur="handleNicknameBlur" />
+		<custom-navbar title="登录">
+			<template #left>
+				<view class="logo">
+					<image src="/common/icons/skunk.svg" mode=""></image>
 				</view>
-				<button type="default" @click="login">登录</button>
-				<view class="remark">
-					<checkbox-group @change="changeAgree">
-						<label>
-							<checkbox style="transform: scale(0.7)" color="#4e6cff" :value="true" />
-							<text>说明:用户信息只保存于本地,进行虚拟登录</text>
-						</label>
-					</checkbox-group>
+			</template>
+			<template>
+				<view class="login">
+					<view class="weixin">
+						<view class="form">
+							<view class="name">嗨，我是SkunkAI</view>
+							<view class="desc">我是AI智能助手,可以帮你搜索/答疑/写作,请把你的任务交给我吧。</view>
+							<button open-type="chooseAvatar" @chooseavatar="handleChooseAvatar">
+								<image v-if="avatar" :src="avatar" mode="aspectFill" />
+								<text v-else>选择头像</text>
+							</button>
+							<input cursor-color="#4e6cff" v-model="nickName" maxlength="6" type="nickname" placeholder="请输入昵称" @blur="handleNicknameBlur" />
+						</view>
+						<button type="default" @click="login">登录</button>
+						<view class="remark">
+							<checkbox-group @change="changeAgree">
+								<label>
+									<checkbox style="transform: scale(0.7)" color="#4e6cff" :value="true" />
+									<text>说明:用户信息只保存于本地,进行虚拟登录</text>
+								</label>
+							</checkbox-group>
+						</view>
+					</view>
 				</view>
-			</view>
-		</view>
+			</template>
+		</custom-navbar>
 	</view>
 </template>
 
@@ -90,36 +92,15 @@ onShow(() => {
 </script>
 
 <style lang="scss" scoped>
-$bar: var(--status-bar-height);
-@mixin bg {
-	background: linear-gradient(to bottom, $gradient-color1, $gradient-color2, #ffffff);
-	background: -webkit-linear-gradient(to bottom, $gradient-color1, $gradient-color2, #ffffff);
-	background: -moz-linear-gradient(to bottom, $gradient-color1, $gradient-color2, #ffffff);
-	background: -o-linear-gradient(to bottom, $gradient-color1, $gradient-color2, #ffffff);
-}
 .content {
-	@include bg();
 	height: 100vh;
 	overflow: hidden;
 	width: 100%;
-	.title {
+	.logo {
+		width: 40rpx;
+		height: 40rpx;
+		border-radius: 50%;
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding-top: $bar;
-		font-weight: 600;
-		text-align: center;
-		height: 88rpx;
-		line-height: 88rpx;
-		color: #ffffff;
-		padding-left: 20rpx;
-		padding-right: 20rpx;
-		.logo {
-			width: 40rpx;
-			height: 40rpx;
-			border-radius: 50%;
-			display: flex;
-		}
 	}
 	image {
 		width: 100%;
@@ -141,7 +122,7 @@ $bar: var(--status-bar-height);
 				text-align: center;
 				width: 100%;
 				margin-top: 10rpx;
-				font-weight: 600;
+				font-weight: 700;
 			}
 			.form {
 				display: flex;

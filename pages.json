@@ -9,7 +9,7 @@
 		{
 			"path": "pages/user/user",
 			"style": {
-				"navigationBarTitleText": "我的"
+				"navigationBarTitleText": "账户信息"
 			}
 		},
 		{
