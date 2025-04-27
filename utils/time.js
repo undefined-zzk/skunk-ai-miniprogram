@@ -16,7 +16,9 @@ export const timeDiffNowDay = (time) => {
 	const day = now.diff(targetDate, 'day')
 	if (day < 1) {
 		return config.TIME.today
-	} else if (day >= 1 && day < 7) {
+	} else if (day >= 1 && day < 3) {
+		return config.TIME.recent
+	} else if (day >= 3 && day < 7) {
 		return config.TIME.weeks
 	} else {
 		return config.TIME.long

@@ -5,6 +5,7 @@ import { useAsideStore } from '@/store/modules/aside';
 import { storeToRefs } from 'pinia';
 import { timeDiffNowDay } from '@/utils/time';
 import { config } from '@/static/config';
+import { showToast } from '@/utils/toast';
 const showModal = defineModel({ required: true, default: false, type: Boolean });
 const { width, top, right } = uni.getMenuButtonBoundingClientRect();
 const { safeArea } = uni.getSystemInfoSync();
@@ -17,9 +18,16 @@ const asideStore = useAsideStore();
 const { userinfo } = storeToRefs(userStore);
 const { cacheMsgObj, currentKey } = storeToRefs(messageStore);
 const { asideChange } = storeToRefs(asideStore);
-
 const animation = ref(null);
+const showPressPopup = ref(false);
+const showDelModal = ref(false);
+const showRenameModal = ref(false);
+const asideTitleMaxLength = 100;
+const pressItem = ref({
+	asideTitle: ''
+});
 watch(showModal, async (newVal) => {
+	await nextTick();
 	// 创建动画
 	const ani = uni.createAnimation({
 		duration: 400,
@@ -32,8 +40,8 @@ watch(showModal, async (newVal) => {
 		}
 	} else {
 		ani.opacity(0).step();
+		pressItem.value = { asideTitle: '' };
 	}
-	await nextTick();
 	animation.value = ani.export();
 });
 const historyList = computed(() => {
@@ -48,7 +56,7 @@ function getGroupData() {
 	try {
 		const list = cacheMsgObj.value.map((item) => {
 			return {
-				question: item.list ? item.list[0]?.question?.slice(0, 100) : '-',
+				question: item.asideTitle ? item.asideTitle : item.list ? item.list[0]?.question?.slice(0, asideTitleMaxLength) : '-',
 				day: timeDiffNowDay(item.time),
 				time: item.time
 			};
@@ -88,6 +96,46 @@ function goUserCenter() {
 		url: '/pages/user/user'
 	});
 }
+
+// 处理长按事件
+function handleLongPress(child) {
+	pressItem.value = { ...child, asideTitle: child.asideTitle ? child.asideTitle : child.question };
+	showPressPopup.value = true;
+}
+
+// 重新命名标题
+function renameHistoryTitle() {
+	if (!pressItem.value) return;
+	showRenameModal.value = true;
+}
+// 删除会话
+function delHistory() {
+	if (!pressItem.value) return;
+	const { time } = pressItem.value;
+	cacheMsgObj.value = cacheMsgObj.value.filter((item) => item.time != time).filter((item) => item.list && item.list.length > 0);
+	if (time === currentKey.value) {
+		currentKey.value = Date.now();
+		messageStore.updateCurrentMsgList(currentKey.value);
+	}
+	showDelModal.value = false;
+	showPressPopup.value = false;
+}
+// 打开删除确认弹窗，关闭长按弹窗
+function pressOpen() {
+	showPressPopup.value = false;
+	showDelModal.value = true;
+}
+// 会话重新命名
+function renameConfirm() {
+	const { time, asideTitle } = pressItem.value;
+	if (!asideTitle || asideTitle.length <= 0) {
+		showToast('请输入名称');
+		return;
+	}
+	const result = cacheMsgObj.value.find((item) => item.time === time);
+	result.asideTitle = asideTitle;
+	showRenameModal.value = false;
+}
 </script>
 <template>
 	<view class="aside-history" v-if="showModal">
@@ -96,9 +144,18 @@ function goUserCenter() {
 			<view class="list-box" :class="{ noData: !hisLen }">
 				<view class="list-item" v-if="hisLen" v-for="(item, key) in historyList" :key="key">
 					<view class="date">{{ key }}</view>
-					<view class="answer-item" @click="changeChat(child.time)" v-for="(child, idx) in item" :key="idx">{{ child.question }}</view>
+					<view
+						class="answer-item"
+						:class="{ active: currentKey === child.time }"
+						@longpress="handleLongPress(child)"
+						@click="changeChat(child.time)"
+						v-for="(child, idx) in item"
+						:key="idx"
+					>
+						{{ child.question }}
+					</view>
 				</view>
-				<view class="empty" v-if="!hisLen">暂无会话</view>
+				<view class="empty" v-if="!hisLen">暂无对话</view>
 			</view>
 			<view class="user" @click="goUserCenter">
 				<image :src="userinfo.avatar" mode=""></image>
@@ -106,9 +163,21 @@ function goUserCenter() {
 			</view>
 		</view>
 	</view>
+	<press-popup v-model="showPressPopup" @del="pressOpen" @rename="renameHistoryTitle"></press-popup>
+	<confirm-modal @confirm="delHistory" v-model="showDelModal" title="永久删除对话" content="删除后,该对话不可恢复,确认删除吗?"></confirm-modal>
+	<confirm-modal @confirm="renameConfirm" v-model="showRenameModal" title="重命名会话">
+		<template #content>
+			<input class="rename" cursor-color="#4e6cff" :maxlength="asideTitleMaxLength" v-model.trim="pressItem.asideTitle" focus placeholder="请输入新的会话名称" />
+		</template>
+	</confirm-modal>
 </template>
 
 <style lang="scss" scoped>
+.rename {
+	padding: 10rpx 20rpx;
+	background-color: #f3f4f6;
+	border-radius: 10rpx;
+}
 .box {
 	position: fixed;
 	z-index: 1002;
@@ -123,6 +192,7 @@ function goUserCenter() {
 	flex-direction: column;
 	opacity: 0;
 	box-sizing: border-box;
+
 	.list-box {
 		overflow-y: auto;
 		flex: 1;
@@ -133,7 +203,7 @@ function goUserCenter() {
 		}
 		.empty {
 			font-size: 28rpx;
-			color: #333;
+			color: #878787;
 		}
 		.list-item {
 			font-size: 30rpx;
@@ -148,6 +218,11 @@ function goUserCenter() {
 				white-space: nowrap;
 				overflow: hidden;
 				text-overflow: ellipsis;
+				border-radius: 10rpx;
+				padding: 20rpx 10rpx;
+				&.active {
+					background-color: rgba($primary-color, 10%);
+				}
 			}
 		}
 	}

@@ -9,7 +9,7 @@
 			</template>
 		</custom-navbar>
 		<view class="msg-box" :class="{ noChat: currentMsgIsEmpty }">
-			<view class="empty" v-if="currentMsgIsEmpty">
+			<view class="empty" v-if="currentMsgIsEmpty && !refreshCreate">
 				<view class="logo">
 					<image src="/common/icons/skunk.svg" mode=""></image>
 				</view>
@@ -21,7 +21,7 @@
 				</view>
 			</view>
 			<view class="msgs" v-else>
-				<message-item v-for="item in currentMsgList" :item="item" :key="item.id"></message-item>
+				<message-item v-for="(item, index) in currentMsgList" :item="item" :index="index" :key="item.id"></message-item>
 			</view>
 			<msg-input class="msg-input-bottom"></msg-input>
 		</view>
@@ -34,10 +34,12 @@ import { useAuth } from '../../composables/useAuth';
 import { storeToRefs } from 'pinia';
 import { useMessageStore } from '@/store/modules/message';
 import { showToast } from '@/utils/toast';
+import { ref, onMounted } from 'vue';
 useAuth();
 const showAside = ref(false);
 const messageStore = useMessageStore();
-const { currentMsgList, currentMsgIsEmpty, currentKey } = storeToRefs(messageStore);
+const stop = ref(false);
+const { currentMsgList, currentMsgIsEmpty, currentKey, processLoading, refreshCreate } = storeToRefs(messageStore);
 
 // 创建新的对话
 const createNewChat = () => {
@@ -48,6 +50,25 @@ const createNewChat = () => {
 	currentKey.value = Date.now();
 	currentMsgList.value = [];
 };
+
+// 内容生成中
+watch(processLoading, () => {
+	if (processLoading.value) {
+		stop.value = false;
+		// scrollToBottom();
+	} else {
+		stop.value = true;
+	}
+});
+
+// msgRef滚动到底部
+function scrollToBottom() {
+	if (stop.value) return;
+	if (msgRef.value) {
+		msgRef.value.scrollTop = msgRef.value.scrollHeight;
+		scrollToBottom();
+	}
+}
 </script>
 
 <style lang="scss" scoped>

@@ -8,6 +8,12 @@ import {
 // 存储key名
 const CACHEKEY = 'skunk-message'
 export const useMessageStore = defineStore('message', () => {
+	// 重新编辑的数据，是重新生成的判断依据
+	const editMsg = ref({})
+	// 当前对话内容是否正在生成中
+	const processLoading = ref(false)
+	// 当前对话是否是重新生成
+	const refreshCreate = ref(false)
 	const cacheKey = JSON.parse(uni.getStorageSync(CACHEKEY) || '{}').currentKey;
 	const cahceMsgObjInitData = JSON.parse(uni.getStorageSync(CACHEKEY) || '[]').cacheMsgObj
 	// 每次对话最多30次
@@ -38,13 +44,19 @@ export const useMessageStore = defineStore('message', () => {
 			time: key,
 			maxLen: list.length,
 			list,
+			asideTitle: ''
 		}
+		const result = cacheMsgObj.value.find(item => item.time === key)
 		const index = cacheMsgObj.value.findIndex(item => item.time === key)
-		if (index == -1) {
+		if (!result) {
 			cacheMsgObj.value.push(obj)
 		} else {
-			cacheMsgObj.value.fill(obj, index, index + 1)
+			cacheMsgObj.value.fill({
+				...obj,
+				asideTitle: result.asideTitle
+			}, index, index + 1)
 		}
+		cacheMsgObj.value = cacheMsgObj.value.filter(item => item.list.length > 0)
 	}
 	// 删除存储对话内容
 	const removeCacheMsgObj = (key) => {
@@ -70,6 +82,7 @@ export const useMessageStore = defineStore('message', () => {
 		}
 	}
 	return {
+		processLoading,
 		currentMsgList,
 		currentMsgIsEmpty,
 		cacheMsgObj,
@@ -81,7 +94,9 @@ export const useMessageStore = defineStore('message', () => {
 		removeCacheMsgObj,
 		removeCacheMsgObjByIndex,
 		updateCurrentMsgList,
-		updateCurrentMsgListKey
+		updateCurrentMsgListKey,
+		editMsg,
+		refreshCreate
 	}
 }, {
 	persist: {

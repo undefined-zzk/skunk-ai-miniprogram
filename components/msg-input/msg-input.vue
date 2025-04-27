@@ -11,8 +11,7 @@ import { config } from '@/static/config';
 const messageStore = useMessageStore();
 const asideStore = useAsideStore();
 const { asideChange } = storeToRefs(asideStore);
-const { currentMsgIsEmpty, currentMsgList, currentKey, currentMsgLength, everyMaxLen } = storeToRefs(messageStore);
-
+const { currentMsgIsEmpty, currentMsgList, currentKey, currentMsgLength, everyMaxLen, processLoading, refreshCreate, editMsg } = storeToRefs(messageStore);
 const { proxy } = getCurrentInstance();
 const question = ref('');
 const tempQuestion = ref('');
@@ -20,9 +19,9 @@ const inputRef = ref();
 const autoHeight = ref(false);
 const deepthink = ref(false);
 const requestLoading = ref(false); // 请求loading
-const processLoading = ref(false); // 内容生成loading
 const role = ref('user');
 const createWorkerIng = ref(false);
+
 const modelTypes = ref({
 	chat: 'deepseek-chat',
 	reasoner: 'deepseek-reasoner'
@@ -30,6 +29,17 @@ const modelTypes = ref({
 let worker = null;
 watch(currentKey, () => {
 	killRequest();
+});
+
+// 会话重新生成
+watch(editMsg, (newVal) => {
+	const { index, newQuestion } = newVal;
+	killRequest();
+	question.value = '';
+	tempQuestion.value = newQuestion;
+	refreshCreate.value = true;
+	currentMsgList.value.splice(index);
+	validSendBefore();
 });
 
 // 创建新的线程
@@ -46,6 +56,7 @@ const createNewWorker = () => {
 			});
 			sendMsg();
 			createNewWorker.value = false;
+			refreshCreate.value = false;
 		},
 		fail(res) {
 			createNewWorker.value = false;
@@ -63,11 +74,15 @@ const disabledInput = computed(() => {
 const cacheMsgData = () => {
 	messageStore.setCacheMsgObj(currentKey.value, currentMsgList.value);
 };
+// 请求控制器
 let abortTaskFn = null;
 
 // 消息发送前校验
 function validSendBefore() {
-	if (requestLoading.value || processLoading.value || !question.value) return;
+	if (!refreshCreate.value) {
+		// 不是重新生成
+		if (requestLoading.value || processLoading.value || !question.value) return;
+	}
 	if (currentMsgLength.value >= everyMaxLen.value) return proxy.$toast.showToast('此对话已达限制，请新建对话');
 	// 正在读取worker
 	if (createWorkerIng.value) return;
@@ -183,6 +198,7 @@ function initMsgList() {
 	cacheMsgData();
 }
 
+// 结束线程
 function killWorker() {
 	if (worker) {
 		worker.terminate();
@@ -195,7 +211,6 @@ function killRequest() {
 	if (abortTaskFn) {
 		abortTaskFn.abort();
 		abortTaskFn = null;
-		proxy.$toast.showToast('会话已终止');
 	}
 	processLoading.value = false;
 	requestLoading.value = false;
