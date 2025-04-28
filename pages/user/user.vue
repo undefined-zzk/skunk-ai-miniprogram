@@ -56,6 +56,7 @@ onShow(() => {});
 	display: flex;
 	align-items: center;
 	gap: 20rpx;
+
 	.avatar {
 		width: 100rpx;
 		height: 100rpx;

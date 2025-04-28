@@ -20,12 +20,19 @@
 					<view class="sub-title">我可以帮你写代码、写作各种创意内容，请把你的任务交给我吧~</view>
 				</view>
 			</view>
-			<view class="msgs" v-else>
-				<message-item v-for="(item, index) in currentMsgList" :item="item" :index="index" :key="item.id"></message-item>
-			</view>
+			<scroll-view scroll-y @touchmove="touchmove" class="msgs" scroll-anchoring scroll-x :scroll-top="scrollTop" @scroll="scroll" scroll-with-animation v-else>
+				<!-- 	<uv-list style="width: 100%">
+					<uv-list-item style="width: 100%; overflow: auto" v-for="(item, index) in currentMsgList" :key="item.id">
+						<message-item :item="item" :index="index"></message-item>
+					</uv-list-item>
+				</uv-list> -->
+				<message-item v-for="(item, index) in currentMsgList" :key="item.id" :item="item" :index="index"></message-item>
+				<view class="observe"></view>
+			</scroll-view>
 			<msg-input class="msg-input-bottom"></msg-input>
 		</view>
 		<aside-history v-model="showAside"></aside-history>
+		<top-bottom-arrow @top="goTop" @bottom="goBottom"></top-bottom-arrow>
 	</view>
 </template>
 
@@ -34,11 +41,17 @@ import { useAuth } from '../../composables/useAuth';
 import { storeToRefs } from 'pinia';
 import { useMessageStore } from '@/store/modules/message';
 import { showToast } from '@/utils/toast';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, getCurrentInstance } from 'vue';
+const instance = getCurrentInstance();
 useAuth();
 const showAside = ref(false);
+const scrollTop = ref(0);
+const scrollObj = ref({
+	oldScrollTop: 0
+});
 const messageStore = useMessageStore();
 const stop = ref(false);
+let rafId = null;
 const { currentMsgList, currentMsgIsEmpty, currentKey, processLoading, refreshCreate } = storeToRefs(messageStore);
 
 // 创建新的对话
@@ -55,20 +68,78 @@ const createNewChat = () => {
 watch(processLoading, () => {
 	if (processLoading.value) {
 		stop.value = false;
-		// scrollToBottom();
+		goToBtoLoop();
 	} else {
 		stop.value = true;
 	}
 });
 
-// msgRef滚动到底部
-function scrollToBottom() {
-	if (stop.value) return;
-	if (msgRef.value) {
-		msgRef.value.scrollTop = msgRef.value.scrollHeight;
-		scrollToBottom();
-	}
+function scroll(e) {
+	scrollObj.value.oldScrollTop = e.detail.scrollTop;
 }
+
+function touchmove() {
+	stop.value = true;
+}
+
+// 回到顶部
+function goTop() {
+	stop.value = true;
+	// 确保scrollTop的值发生变化，不然小程序会忽略这次更新
+	scrollTop.value = scrollObj.value.oldScrollTop;
+	nextTick(() => {
+		scrollTop.value = 0;
+	});
+}
+
+// 回到底部
+async function goBottom() {
+	scrollTop.value = scrollObj.value.oldScrollTop;
+	const { scrollHeight } = await getScrollInfo();
+	nextTick(() => {
+		scrollTop.value = scrollHeight;
+	});
+}
+
+async function goToBtoLoop() {
+	if (stop.value) {
+		clearTimeout(rafId);
+		rafId = null;
+		return;
+	}
+	const { scrollHeight } = await getScrollInfo();
+	scrollTop.value = scrollHeight + 1;
+	nextTick(() => {
+		scrollTop.value = scrollHeight;
+	});
+	rafId = setTimeout(() => {
+		goToBtoLoop();
+	}, 100);
+}
+
+// 获取内容总体高度
+function getScrollInfo() {
+	return new Promise((resolve) => {
+		if (currentMsgIsEmpty.value) return;
+		uni.createSelectorQuery()
+			.select('.msgs')
+			.scrollOffset(({ scrollTop, scrollHeight }) => {
+				resolve({
+					scrollHeight,
+					scrollTop
+				});
+			})
+			.exec();
+	});
+}
+
+onReady(() => {
+	scrollTop.value = scrollObj.value.oldScrollTop + 0.01;
+	nextTick(async () => {
+		const { scrollHeight } = await getScrollInfo();
+		scrollTop.value = scrollHeight;
+	});
+});
 </script>
 
 <style lang="scss" scoped>
@@ -97,11 +168,14 @@ function scrollToBottom() {
 			margin-top: 80rpx;
 			// justify-content: center;
 		}
+		.observe {
+			text-align: center;
+			height: 60rpx;
+		}
 		.msgs {
 			flex: 1;
 			flex-shrink: 0;
 			overflow-y: auto;
-			padding: 0 20rpx;
 		}
 		.msg-input-bottom {
 			width: 100%;

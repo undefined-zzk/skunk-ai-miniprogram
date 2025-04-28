@@ -16,18 +16,19 @@ const { proxy } = getCurrentInstance();
 const question = ref('');
 const tempQuestion = ref('');
 const inputRef = ref();
-const autoHeight = ref(false);
+const autoHeight = ref(true);
 const deepthink = ref(false);
 const requestLoading = ref(false); // 请求loading
 const role = ref('user');
 const createWorkerIng = ref(false);
-
+const keyboardHeight = ref(0); // 键盘高度
 const modelTypes = ref({
 	chat: 'deepseek-chat',
 	reasoner: 'deepseek-reasoner'
 });
 let worker = null;
 watch(currentKey, () => {
+	deepthink.value = false;
 	killRequest();
 });
 
@@ -98,6 +99,7 @@ function validSendBefore() {
 
 // 发送消息
 async function sendMsg() {
+	await nextTick();
 	const { currentItem, messages } = requestParams();
 	requestLoading.value = true;
 	setTimeout(() => {
@@ -127,8 +129,8 @@ async function sendMsg() {
 				deepthink: deepthink.value
 			});
 			worker.onMessage((e) => {
+				buffer += e.chunk;
 				if (e.chunk !== '[DONE]' && abortTaskFn) {
-					buffer += e.chunk;
 					currentItem.answer = buffer;
 					return;
 				}
@@ -138,7 +140,6 @@ async function sendMsg() {
 			});
 		},
 		fail(err) {
-			console.log('failerr', err);
 			if (err.errMsg?.indexOf('timeout') != -1) {
 				currentItem.answer = err.errMsg || '服务繁忙，请稍后再试';
 			}
@@ -217,30 +218,50 @@ function killRequest() {
 	initMsgList();
 	killWorker();
 }
+
+function inputEvent(e) {
+	if (e.length > 150) {
+		autoHeight.value = false;
+	} else {
+		autoHeight.value = true;
+	}
+}
+
+function blurEvent() {
+	keyboardHeight.value = 0;
+}
+
 onLoad(() => {
 	storageClearIfNeeded();
+	killRequest();
+});
+onShow(() => {
+	uni.onKeyboardHeightChange((res) => {
+		keyboardHeight.value = res.height;
+	});
+});
+onHide(() => {
+	uni.offKeyboardHeightChange();
 });
 </script>
 <template>
-	<view class="msg-input">
-		<uni-easyinput
-			ref="inputRef"
-			type="textarea"
+	<view class="msg-input" :style="{ bottom: keyboardHeight + 'px' }" :class="{ keyboard: keyboardHeight > 0 && !currentMsgIsEmpty }">
+		<uv-textarea
+			fixed
+			@input="inputEvent"
+			v-model.trim="question"
+			height="100"
 			:disabled="disabledInput"
-			placeholderStyle="fontSize:24rpx"
-			:maxlength="50000"
-			:adjust-position="false"
-			:clearSize="0"
+			:customStyle="{ backgroundColor: '#f3f4f6' }"
+			placeholderStyle="font-size:24rpx;"
 			:autoHeight="autoHeight"
-			:inputBorder="false"
-			disableColor="#f3f4f6"
-			trim
-			:styles="{
-				backgroundColor: '#f3f4f6'
-			}"
-			v-model="question"
+			:adjustPosition="false"
+			border="none"
+			:maxlength="50000"
+			s
+			@blur="blurEvent"
 			placeholder="给 SkunkAI 发送消息"
-		></uni-easyinput>
+		></uv-textarea>
 		<view class="tool">
 			<view class="left">
 				<view class="icon" :class="{ active: deepthink }" @click.stop="deepthink = !deepthink">
@@ -270,11 +291,16 @@ onLoad(() => {
 	border: 1rpx solid #f3f3f3;
 	border-radius: 10rpx;
 	overflow: hidden;
+	transition: bottom 0.3s ease;
+	&.keyboard {
+		position: fixed;
+		left: 50%;
+		transform: translateX(-50%);
+	}
 	.tool {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-top: 20rpx;
 		.left,
 		.right {
 			.icon {

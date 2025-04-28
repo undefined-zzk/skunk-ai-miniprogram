@@ -117,6 +117,8 @@ const refresh = () => {
 	overflow: hidden;
 }
 .message-item {
+	padding: 0 20rpx;
+	width: 100%;
 	.user,
 	.skunk {
 		gap: 16rpx;
