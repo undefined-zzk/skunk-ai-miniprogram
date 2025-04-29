@@ -58,11 +58,7 @@
 			"minified": true
 		},
 		"usingComponents": true,
-		"requiredPrivateInfos": [
-			"chooseAddress",
-			"chooseLocation",
-			"getLocation"
-		],
+		"requiredPrivateInfos": ["chooseAddress", "chooseLocation", "getLocation"],
 		"permission": {
 			"scope.userLocation": {
 				"desc": "你的位置信息将用于小程序位置接口展示"
