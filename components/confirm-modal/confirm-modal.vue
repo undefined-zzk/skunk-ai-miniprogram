@@ -56,8 +56,8 @@ const cancel = () => {
 				<slot name="content" v-else></slot>
 			</view>
 			<view class="btns">
-				<view class="cancel" @click="cancel">取消</view>
-				<view class="confirm" @click="confirm">确定</view>
+				<view class="cancel" @click="cancel">{{ cancelText }}</view>
+				<view class="confirm" @click="confirm">{{ confirmText }}</view>
 			</view>
 		</view>
 	</view>
@@ -116,6 +116,10 @@ const cancel = () => {
 				cursor: pointer;
 				&.cancel {
 					border-right: 1rpx solid #f3f3f3;
+					color: #878787;
+				}
+				&.confirm {
+					color: #626262;
 				}
 			}
 		}

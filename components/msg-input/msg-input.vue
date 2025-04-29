@@ -8,10 +8,11 @@ import { storageClearIfNeeded } from '@/utils/storage';
 import { useAsideStore } from '@/store/modules/aside';
 import { timeDiffNowDay } from '@/utils/time';
 import { config } from '@/static/config';
+import { showErrorToast, showSuccessToast } from '@/utils/toast';
 const messageStore = useMessageStore();
 const asideStore = useAsideStore();
 const { asideChange } = storeToRefs(asideStore);
-const { currentMsgIsEmpty, currentMsgList, currentKey, currentMsgLength, everyMaxLen, processLoading, refreshCreate, editMsg } = storeToRefs(messageStore);
+const { currentMsgIsEmpty, currentMsgList, currentKey, currentMsgLength, everyMaxLen, processLoading, startRender, refreshCreate, editMsg } = storeToRefs(messageStore);
 const { proxy } = getCurrentInstance();
 const question = ref('');
 const tempQuestion = ref('');
@@ -130,6 +131,7 @@ async function sendMsg() {
 			});
 			worker.onMessage((e) => {
 				buffer += e.chunk;
+				startRender.value = true;
 				if (e.chunk !== '[DONE]' && abortTaskFn) {
 					currentItem.answer = buffer;
 					return;
@@ -215,6 +217,7 @@ function killRequest() {
 	}
 	processLoading.value = false;
 	requestLoading.value = false;
+	startRender.value = false;
 	initMsgList();
 	killWorker();
 }
@@ -231,6 +234,20 @@ function blurEvent() {
 	keyboardHeight.value = 0;
 }
 
+// 监听网络状态
+function workStatus(res) {
+	if (!res.isConnected) {
+		showErrorToast('网络已断开连接');
+		killRequest();
+	} else {
+		if (res.networkType != 'wifi') {
+			showSuccessToast(`已使用移动网络`);
+		} else {
+			showSuccessToast(`已连接wifi`);
+		}
+	}
+}
+
 onLoad(() => {
 	storageClearIfNeeded();
 	killRequest();
@@ -239,9 +256,11 @@ onShow(() => {
 	uni.onKeyboardHeightChange((res) => {
 		keyboardHeight.value = res.height;
 	});
+	uni.onNetworkStatusChange(workStatus);
 });
 onHide(() => {
 	uni.offKeyboardHeightChange();
+	uni.offNetworkStatusChange(workStatus);
 });
 </script>
 <template>

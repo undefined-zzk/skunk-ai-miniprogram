@@ -52,7 +52,7 @@ const scrollObj = ref({
 const messageStore = useMessageStore();
 const stop = ref(false);
 let rafId = null;
-const { currentMsgList, currentMsgIsEmpty, currentKey, processLoading, refreshCreate } = storeToRefs(messageStore);
+const { currentMsgList, currentMsgIsEmpty, currentKey, startRender, processLoading, refreshCreate } = storeToRefs(messageStore);
 
 // 创建新的对话
 const createNewChat = () => {
@@ -64,13 +64,19 @@ const createNewChat = () => {
 	currentMsgList.value = [];
 };
 
-// 内容生成中
-watch(processLoading, () => {
-	if (processLoading.value) {
+// 内容开始渲染
+watch(startRender, () => {
+	if (startRender.value) {
 		stop.value = false;
 		goToBtoLoop();
 	} else {
 		stop.value = true;
+	}
+});
+// 请求开始
+watch(processLoading, () => {
+	if (processLoading.value) {
+		goBottom();
 	}
 });
 
@@ -98,6 +104,7 @@ async function goBottom() {
 	const { scrollHeight } = await getScrollInfo();
 	nextTick(() => {
 		scrollTop.value = scrollHeight;
+		stop.value = false;
 	});
 }
 

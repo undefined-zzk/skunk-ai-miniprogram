@@ -5,10 +5,12 @@ import {
 	ref
 } from 'vue'
 export const useUserStore = defineStore('user', () => {
+	// 用户信息
 	const userinfo = ref({
 		name: '',
 		uuid: '',
 		avatar: '',
+		ip: ''
 	})
 	const skunkToken = ref('')
 	// 退出登录

@@ -18,7 +18,7 @@
 							</button>
 							<input cursor-color="#4e6cff" v-model="nickName" maxlength="6" type="nickname" placeholder="请输入昵称" @blur="handleNicknameBlur" />
 						</view>
-						<button type="default" @click="login">登录</button>
+						<button type="default" plain @click="login">登录</button>
 						<view class="remark">
 							<checkbox-group @change="changeAgree">
 								<label>
@@ -38,6 +38,7 @@
 import { useUserStore } from '@/store/modules/user';
 import { storeToRefs } from 'pinia';
 import { getCurrentInstance } from 'vue';
+import { showErrorToast } from '@/utils/toast';
 const { proxy } = getCurrentInstance();
 const userStore = useUserStore();
 const { userinfo, skunkToken } = storeToRefs(userStore);
@@ -81,7 +82,6 @@ function generateWeChatUUID() {
 		return Date.now() + '-' + Math.random().toString(36).substr(2, 8);
 	}
 }
-
 onShow(() => {
 	if (skunkToken.value) {
 		uni.reLaunch({
@@ -116,6 +116,9 @@ onShow(() => {
 		.weixin {
 			margin-top: 100rpx;
 			width: 100%;
+			button {
+				border: none;
+			}
 			.remark {
 				color: $primary-color;
 				font-size: 24rpx;

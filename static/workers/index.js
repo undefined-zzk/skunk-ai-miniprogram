@@ -25,6 +25,9 @@ worker.onMessage(async function(res) {
 						chunkContent = chunk.choices[0]?.delta?.content || '';
 					}
 					if (chunkContent) {
+						// 真机上内容渲染太快，手动进行适当的延时
+						const randomDelay = 30 + Math.floor(Math.random() * 21); // 30ms to 50ms delay
+						await new Promise(resolve => setTimeout(resolve, randomDelay));
 						worker.postMessage({
 							chunk: chunkContent
 						});

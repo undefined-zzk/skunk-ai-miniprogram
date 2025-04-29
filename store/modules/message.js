@@ -8,6 +8,7 @@ import {
 // 存储key名
 const CACHEKEY = 'skunk-message'
 export const useMessageStore = defineStore('message', () => {
+	const startRender = ref(false)
 	// 重新编辑的数据，是重新生成的判断依据
 	const editMsg = ref({})
 	// 当前对话内容是否正在生成中
@@ -96,7 +97,8 @@ export const useMessageStore = defineStore('message', () => {
 		updateCurrentMsgList,
 		updateCurrentMsgListKey,
 		editMsg,
-		refreshCreate
+		refreshCreate,
+		startRender
 	}
 }, {
 	persist: {
