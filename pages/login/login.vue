@@ -10,7 +10,7 @@
 				<view class="login">
 					<view class="weixin">
 						<view class="form">
-							<view class="name">嗨，我是ZK问答</view>
+							<view class="name">嗨，我是ZK助手</view>
 							<view class="desc">可以帮你搜索/答疑/写作,请把你的任务交给我吧。</view>
 							<button open-type="chooseAvatar" @chooseavatar="handleChooseAvatar">
 								<image v-if="avatar" :src="avatar" mode="aspectFill" />

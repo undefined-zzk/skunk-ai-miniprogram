@@ -1,6 +1,6 @@
 <template>
 	<view class="content">
-		<custom-navbar title="SkunkAI">
+		<custom-navbar title="ZK助手">
 			<template #left>
 				<view class="nav-icon">
 					<image src="/common/icons/aside.svg" @click="showAside = true"></image>
@@ -15,7 +15,7 @@
 				</view>
 				<view class="desc">
 					<view class="title">
-						<text>我是ZK问答，很高兴见到你!</text>
+						<text>我是ZK助手，很高兴见到你!</text>
 					</view>
 					<view class="sub-title">我可以帮你写代码、写作各种创意内容，请把你的任务交给我吧~</view>
 				</view>
